@@ -1,0 +1,32 @@
+# Ignore Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environment directories
+venv/
+.env/
+.venv/
+
+# Ignore Django-specific files (if applicable)
+*.log
+*.sqlite3
+/media
+/static
+
+# Ignore IDE/editor specific files
+.idea/
+.vscode/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore environment variable files (e.g., .env)
+.env
+
+# Ignore coverage reports
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
