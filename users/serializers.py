@@ -15,9 +15,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 # Post Serializer
 class PostSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())  # Automatically set the current user
+
     class Meta:
         model = Post
         fields = ['id', 'user', 'title', 'content', 'created_at', 'updated_at']
+        read_only_fields = ['user']  # Ensures that 'user' is not included in the input request, only in the response.
+
 
 # Login Serializer
 class LoginSerializer(serializers.Serializer):

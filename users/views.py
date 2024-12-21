@@ -11,7 +11,8 @@ from .models import Post
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.forms import ValidationError
-from rest_framework.authentication import TokenAuthentication  # Token-based Authentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import PermissionDenied
 
 
 # User CRUD (Create, Read, Update, Delete)
@@ -44,16 +45,47 @@ class UserDeleteView(generics.DestroyAPIView):
         return self.request.user
 
 # Post creation API
-
 class PostCreateView(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]  # Ensure user is authenticated
-    authentication_classes = [TokenAuthentication]  # Token authentication
+    authentication_classes = [JWTAuthentication]  # JWT authentication
 
     def perform_create(self, serializer):
-        # Automatically associate the post with the authenticated user
+        # The 'user' field is now automatically set by the serializer
         serializer.save(user=self.request.user)
+
+class PostListView(generics.ListAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        # Only return posts that belong to the authenticated user
+        return Post.objects.filter(user=self.request.user)
+
+class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        # Only return posts that belong to the authenticated user
+        return Post.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+        # Automatically associate the post with the authenticated user when updating
+        serializer.save(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        # Only allow the user who created the post to delete it
+        if instance.user != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this post.")
+        instance.delete()
+
+
 # Login API to generate JWT tokens
 @api_view(['POST'])
 def login(request):
